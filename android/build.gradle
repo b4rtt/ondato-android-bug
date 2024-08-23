@@ -37,5 +37,12 @@ allprojects {
         google()
         mavenCentral()
         maven { url 'https://www.jitpack.io' }
+
+        maven {
+            url "$rootDir/../../android/local/repo"
+        }
+        maven {
+            url "$rootDir/../node_modules/ondato-sdk-react-native/android/local/repo"
+        }
     }
 }

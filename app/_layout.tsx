@@ -1,37 +1,51 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import React, { useCallback, useRef, useState } from "react";
+import { Button, StyleSheet, View } from "react-native";
+import {
+  OndatoSdk,
+  OndatoSdkState,
+  OndatoSdkRef,
+  OndatoSdkConfig,
+} from "ondato-sdk-react-native";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+export default () => {
+  const ondatoSdkRef = useRef<OndatoSdkRef>(null);
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  const [config] = useState<OndatoSdkConfig>({
+    mode: "test",
+    identityVerificationId: "your-identity-verification-id",
+    language: "en",
+    showSplashScreen: true,
+    showStartScreen: true,
+    showIdentificationWaitingScreen: true,
+    showSelfieFrame: true,
+    skipRegistrationIfDriverLicense: true,
+    showSuccessWindow: true,
   });
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
+  const onStateUpdate = useCallback((state: OndatoSdkState) => {
+    console.log(JSON.stringify(state, null, 2));
+  }, []);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
+    <View style={styles.container}>
+      <Button
+        disabled={!config?.identityVerificationId}
+        title="Start"
+        onPress={() => ondatoSdkRef.current?.open()}
+      />
+      <OndatoSdk
+        ref={ondatoSdkRef}
+        config={config}
+        onStateUpdate={onStateUpdate}
+      />
+    </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#eee",
+  },
+});
